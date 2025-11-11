@@ -48,6 +48,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::prefix('customers')->group(function () {
         Route::get('/getCustomers', [CustomerController::class, 'listCustomer']);
+        Route::get('/getCustomers/{id}', [CustomerController::class, 'showCustomer']);
         Route::post('/createCustomers', [CustomerController::class, 'createCustomer']);
         Route::put('/updateCustomers/{id}', [CustomerController::class, 'updateCustomer']);
         Route::delete('/deleteCustomers/{id}', [CustomerController::class, 'deleteCustomer']);
@@ -56,6 +57,7 @@ Route::middleware('auth:api')->group(function () {
     // Ventas / Facturas
     Route::prefix('sales')->group(function () {
         Route::get('/getSales', [SaleController::class, 'listSale']);
+        Route::get('/getProducts/{id}', [ProductController::class, 'showSale']);
         Route::post('/createSales', [SaleController::class, 'createSale']);
         Route::get('/updateSales/{id}', [SaleController::class, 'showSale']);
         Route::get('/getSales/{id}/print', [SaleController::class, 'print']);

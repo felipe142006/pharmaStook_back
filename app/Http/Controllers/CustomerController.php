@@ -20,6 +20,15 @@ class CustomerController extends Controller
         ]);
     }
 
+    public function showCustomer($id)
+    {
+        $customer = Customer::find($id);
+        if (!$customer) {
+            return response()->json(['success' => false, 'message' => 'Cliente no encontrado'], 404);
+        }
+        return response()->json(['success' => true, 'data' => $customer]);
+    }
+
     // crea un cliente
     public function createCustomer(Request $request)
     {
