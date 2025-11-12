@@ -14,10 +14,7 @@ class CustomerController extends Controller
     {
         $customers = Customer::orderBy('name', 'asc')->get();
 
-        return response()->json([
-            'success' => true,
-            'data'    => $customers,
-        ]);
+        return response()->apiOk($customers, 200);
     }
 
     public function showCustomer($id)
@@ -26,7 +23,7 @@ class CustomerController extends Controller
         if (!$customer) {
             return response()->json(['success' => false, 'message' => 'Cliente no encontrado'], 404);
         }
-        return response()->json(['success' => true, 'data' => $customer]);
+        return response()->apiOk($customer, 200);
     }
 
     // crea un cliente
@@ -34,7 +31,7 @@ class CustomerController extends Controller
     {
         $validator = $this->validatorCustomer($request, false);
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+            return response()->apiError(['errors' => $validator->errors()], 400);
         }
 
         try {
@@ -42,10 +39,10 @@ class CustomerController extends Controller
             $c = Customer::create($validator->validated());
             DB::commit();
 
-            return response()->json(['success' => true, 'data' => $c], 201);
+            return response()->apiOk($c, 201);
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            return response()->apiError(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -54,12 +51,12 @@ class CustomerController extends Controller
     {
         $customer = Customer::find($id);
         if (!$customer) {
-            return response()->json(['success' => false, 'message' => 'Cliente no encontrado'], 404);
+            return response()->apiError(['message' => 'Cliente no encontrado'], 404);
         }
 
         $validator = $this->validatorCustomer($request, true);
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+            return response()->apiError(['errors' => $validator->errors()], 400);
         }
 
         try {
@@ -67,10 +64,10 @@ class CustomerController extends Controller
             $customer->update($validator->validated());
             DB::commit();
 
-            return response()->json(['success' => true, 'data' => $customer]);
+            return response()->apiOk($customer, 200);
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            return response()->apiError(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -79,11 +76,11 @@ class CustomerController extends Controller
     {
         $customer = Customer::find($id);
         if (!$customer) {
-            return response()->json(['success' => false, 'message' => 'Cliente no encontrado'], 404);
+            return response()->apiError(['message' => 'Cliente no encontrado'], 404);
         }
 
         $customer->delete();
-        return response()->json(['success' => true, 'message' => 'Cliente eliminado con éxito']);
+        return response()->apiOk(['message' => 'Cliente eliminado con éxito'], 200);
     }
 
     // valida los campos

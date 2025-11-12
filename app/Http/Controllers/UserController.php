@@ -32,10 +32,7 @@ class UserController extends Controller
             ->select('id', 'name', 'email', 'created_at', 'updated_at')
             ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $users
-        ], 200);
+        return response()->apiOk($users, 200);
     }
 
     /** 
@@ -48,7 +45,7 @@ class UserController extends Controller
         $validator = $this->validatorUser($request);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+            return response()->apiError(['errors' => $validator->errors()], 400);
         }
         try {
             DB::beginTransaction();
@@ -58,13 +55,10 @@ class UserController extends Controller
                 'password' => bcrypt($request->input('password')) //guarda la contraseña encriptada
             ]);
             DB::commit();
-            return response()->json([
-                'success' => true,
-                'message' => 'Usuario registrado con éxito',
-            ], 201);
+            return response()->apiOk($user, 201);
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            return response()->apiError(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -77,13 +71,13 @@ class UserController extends Controller
         // return response()->json($data);
         $validator = $this->validatorUser($request, $id);
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+            return response()->apiError(['errors' => $validator->errors()], 400);
         }
         try {
             DB::beginTransaction();
             $user = User::find($id);
             if (!$user) {
-                return response()->json(['success' => false, 'message' => 'Usuario no encontrado'], 404);
+                return response()->apiError(['message' => 'Usuario no encontrado'], 404);
             }
 
             $user->update([
@@ -92,13 +86,10 @@ class UserController extends Controller
                 'password' => bcrypt($request->input('password')),  // encripta la nueva contraseña
             ]);
             DB::commit();
-            return response()->json([
-                'success' => true,
-                'message' => 'Usuario actualizado con éxito',
-            ], 200);
+            return response()->apiOk($user, 200);
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            return response()->apiError(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -113,9 +104,9 @@ class UserController extends Controller
 
         if ($user) {
             $user->delete();
-            return response()->json(['success' => true, 'message' => 'Usuario eliminado con éxito.']);
+            return response()->apiOk(['message' => 'Usuario eliminado con éxito.'], 200);
         } else {
-            return response()->json(['success' => false, 'message' => 'Usuario no encontrado.'], 404);
+            return response()->apiError(['message' => 'Usuario no encontrado.'], 404);
         }
     }
 

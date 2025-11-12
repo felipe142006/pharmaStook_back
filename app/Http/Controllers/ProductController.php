@@ -16,10 +16,7 @@ class ProductController extends Controller
     {
         $products = Product::orderBy('name', 'asc')->get();
 
-        return response()->json([
-            'success' => true,
-            'data'    => $products,
-        ]);
+        return response()->apiOk($products, 200);
     }
 
 
@@ -28,7 +25,7 @@ class ProductController extends Controller
     {
         $validator = $this->validatorProductCreate($request);
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+            return response()->apiError(['errors' => $validator->errors()], 400);
         }
 
         $payload = $validator->validated();
@@ -50,11 +47,11 @@ class ProductController extends Controller
                     ]);
                 }
 
-                return response()->json(['success' => true, 'data' => $product], 201);
+                return response()->apiOk($product, 201);
             });
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            return response()->apiError(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -63,9 +60,9 @@ class ProductController extends Controller
     {
         $product = Product::find($id);
         if (!$product) {
-            return response()->json(['success' => false, 'message' => 'Producto no encontrado'], 404);
+            return response()->apiError(['message' => 'Producto no encontrado'], 404);
         }
-        return response()->json(['success' => true, 'data' => $product]);
+        return response()->apiOk($product, 200);
     }
 
     // actualiza un producto
@@ -73,12 +70,12 @@ class ProductController extends Controller
     {
         $product = Product::find($id);
         if (!$product) {
-            return response()->json(['success' => false, 'message' => 'Producto no encontrado'], 404);
+            return response()->apiError(['message' => 'Producto no encontrado'], 404);
         }
 
         $validator = $this->validatorProductUpdate($request, $product->id);
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+            return response()->apiError(['errors' => $validator->errors()], 400);
         }
 
         try {
@@ -89,10 +86,10 @@ class ProductController extends Controller
             $product->update($data);
             DB::commit();
 
-            return response()->json(['success' => true, 'data' => $product]);
+            return response()->apiOk($product, 200);
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            return response()->apiError(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -101,10 +98,10 @@ class ProductController extends Controller
     {
         $product = Product::find($id);
         if (!$product) {
-            return response()->json(['success' => false, 'message' => 'Producto no encontrado'], 404);
+            return response()->apiError(['message' => 'Producto no encontrado'], 404);
         }
         $product->delete();
-        return response()->json(['success' => true, 'message' => 'Producto eliminado con éxito']);
+        return response()->apiOk(['message' => 'Producto eliminado con éxito'], 200);
     }
 
     // genera la alerta cuando detecta que el producto llego al minimo establecido de stock

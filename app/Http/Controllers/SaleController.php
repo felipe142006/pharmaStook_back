@@ -20,10 +20,7 @@ class SaleController extends Controller
             ->orderBy('issued_at', 'desc')
             ->get();
 
-        return response()->json([
-            'success' => true,
-            'data'    => $sales,
-        ]);
+        return response()->apiOk($sales, 200);
     }
 
 
@@ -34,7 +31,7 @@ class SaleController extends Controller
         if (!$sale) {
             return response()->json(['success' => false, 'message' => 'Factura no encontrada'], 404);
         }
-        return response()->json(['success' => true, 'data' => $sale]);
+        return response()->apiOk($sale, 200);
     }
 
     // descarga
@@ -42,15 +39,14 @@ class SaleController extends Controller
     {
         $sale = Sale::with(['items.product', 'customer'])->find($id);
         if (!$sale) {
-            return response()->json(['success' => false, 'message' => 'Factura no encontrada'], 404);
+            return response()->apiError(['message' => 'Factura no encontrada'], 404);
         }
 
         if (is_null($sale->printed_at)) {
             $sale->update(['printed_at' => now()]);
         }
 
-        return response()->json([
-            'success' => true,
+        $payload = [
             'header'  => [
                 'invoice_number' => $sale->invoice_number,
                 'issued_at'      => $sale->issued_at->format('Y-m-d H:i'),
@@ -62,17 +58,17 @@ class SaleController extends Controller
                     'total'    => $sale->total,
                 ],
             ],
-            'items' => $sale->items->map(function ($i) {
-                return [
-                    'sku'        => $i->product->sku,
-                    'name'       => $i->product->name,
-                    'quantity'   => $i->quantity,
-                    'unit_price' => $i->unit_price,
-                    'discount'   => $i->discount,
-                    'line_total' => $i->line_total,
-                ];
-            })
-        ]);
+            'items' => $sale->items->map(fn($i) => [
+                'sku'        => $i->product->sku,
+                'name'       => $i->product->name,
+                'quantity'   => $i->quantity,
+                'unit_price' => $i->unit_price,
+                'discount'   => $i->discount,
+                'line_total' => $i->line_total,
+            ]),
+        ];
+
+        return response()->apiOk($payload, 200);
     }
 
     // crea/genera una venta
@@ -80,7 +76,7 @@ class SaleController extends Controller
     {
         $validator = $this->validatorSale($request);
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+            return response()->apiError(['errors' => $validator->errors()], 400);
         }
         $data = $validator->validated();
         $user = $request->user();
@@ -161,11 +157,11 @@ class SaleController extends Controller
                     ]);
                 }
 
-                return response()->json(['success' => true, 'data' => $sale->load('items.product')], 201);
+                return response()->apiOk($sale->load('items.product'), 201);
             });
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            return response()->apiError(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 
