@@ -9,6 +9,8 @@ use App\Models\InventoryMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class SaleController extends Controller
 {
@@ -38,6 +40,7 @@ class SaleController extends Controller
     public function print($id)
     {
         $sale = Sale::with(['items.product', 'customer'])->find($id);
+
         if (!$sale) {
             return response()->apiError(['message' => 'Factura no encontrada'], 404);
         }
@@ -47,7 +50,7 @@ class SaleController extends Controller
         }
 
         $payload = [
-            'header'  => [
+            'header' => [
                 'invoice_number' => $sale->invoice_number,
                 'issued_at'      => $sale->issued_at->format('Y-m-d H:i'),
                 'customer'       => $sale->customer?->only(['name', 'document', 'email', 'phone', 'address']),
@@ -68,7 +71,14 @@ class SaleController extends Controller
             ]),
         ];
 
-        return response()->apiOk($payload, 200);
+        // genera el PDF
+        $pdf = Pdf::loadView('pdf.sale', ['sale' => $payload])
+            ->setPaper('a4', 'portrait');
+
+        $fileName = $sale->invoice_number . '.pdf';
+
+        // 🔹 devuelve descarga
+        return $pdf->download($fileName);
     }
 
     // crea/genera una venta

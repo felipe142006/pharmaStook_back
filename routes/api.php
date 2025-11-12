@@ -57,7 +57,7 @@ Route::middleware('auth:api')->group(function () {
     // Ventas / Facturas
     Route::prefix('sales')->group(function () {
         Route::get('/getSales', [SaleController::class, 'listSale']);
-        Route::get('/getProducts/{id}', [ProductController::class, 'showSale']);
+        Route::get('/getSales/{id}', [SaleController::class, 'showSale']);
         Route::post('/createSales', [SaleController::class, 'createSale']);
         Route::get('/updateSales/{id}', [SaleController::class, 'showSale']);
         Route::get('/getSales/{id}/print', [SaleController::class, 'print']);
