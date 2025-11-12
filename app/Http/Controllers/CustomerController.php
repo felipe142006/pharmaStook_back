@@ -6,6 +6,7 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class CustomerController extends Controller
 {
@@ -29,7 +30,7 @@ class CustomerController extends Controller
     // crea un cliente
     public function createCustomer(Request $request)
     {
-        $validator = $this->validatorCustomer($request, false);
+        $validator = $this->validatorCustomer($request, false, null);
         if ($validator->fails()) {
             return response()->apiError(['errors' => $validator->errors()], 400);
         }
@@ -54,7 +55,7 @@ class CustomerController extends Controller
             return response()->apiError(['message' => 'Cliente no encontrado'], 404);
         }
 
-        $validator = $this->validatorCustomer($request, true);
+        $validator = $this->validatorCustomer($request, true, (int)$customer->id);
         if ($validator->fails()) {
             return response()->apiError(['errors' => $validator->errors()], 400);
         }
@@ -84,16 +85,26 @@ class CustomerController extends Controller
     }
 
     // valida los campos
-    private function validatorCustomer(Request $request, bool $isUpdate = false)
+    private function validatorCustomer(Request $request, bool $isUpdate = false, ?int $id = null)
     {
         $rules = [
-            'document' => ['nullable', 'string', 'max:50'],
+            'document' => [
+                $isUpdate ? 'sometimes' : 'required',
+                'string',
+                'max:50',
+                Rule::unique('customers', 'document')->ignore($id),
+            ],
             'name'     => [$isUpdate ? 'sometimes' : 'required', 'string', 'max:255'],
             'email'    => ['nullable', 'email'],
             'phone'    => ['nullable', 'string', 'max:50'],
             'address'  => ['nullable', 'string', 'max:255'],
         ];
 
-        return Validator::make($request->all(), $rules);
+        $messages = [
+            'document.required' => 'El documento es obligatorio.',
+            'document.unique'   => 'Este documento ya está registrado.',
+        ];
+
+        return Validator::make($request->all(), $rules, $messages);
     }
 }
