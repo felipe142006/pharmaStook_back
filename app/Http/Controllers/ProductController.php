@@ -151,6 +151,7 @@ class ProductController extends Controller
             'sku'         => ['sometimes', 'required', 'string', 'max:100', Rule::unique('products', 'sku')->ignore($productId)],
             'name'        => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'stock'       => ['nullable', 'integer', 'min:0'],
             'min_stock'   => ['nullable', 'integer', 'min:0'],
             'cost'        => ['nullable', 'numeric', 'min:0'],
             'price'       => ['nullable', 'numeric', 'min:0'],
